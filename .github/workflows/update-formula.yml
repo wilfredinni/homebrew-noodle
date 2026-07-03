@@ -1,0 +1,59 @@
+name: Update Formula
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get latest noodle release
+        id: release
+        run: |
+          LATEST=$(curl -sL https://api.github.com/repos/wilfredinni/noodle/releases/latest)
+          TAG=$(echo "$LATEST" | jq -r .tag_name)
+          CURRENT=$(grep 'version "' Formula/noodle.rb | head -1 | sed 's/.*version "//;s/"//')
+          echo "latest=$TAG" >> $GITHUB_OUTPUT
+          echo "current=v$CURRENT" >> $GITHUB_OUTPUT
+          echo "needs_update=$( [ "$TAG" != "v$CURRENT" ] && echo "true" || echo "false" )" >> $GITHUB_OUTPUT
+          echo "assets_url=$(echo "$LATEST" | jq -r .assets_url)" >> $GITHUB_OUTPUT
+
+      - name: Update formula
+        if: steps.release.outputs.needs_update == 'true'
+        run: |
+          ASSETS=$(curl -sL "${{ steps.release.outputs.assets_url }}")
+
+          MACOS_ARM_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name == "noodle-macos-arm64") | .browser_download_url')
+          LINUX_ARM_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name == "noodle-linux-arm64") | .browser_download_url')
+          LINUX_X64_URL=$(echo "$ASSETS" | jq -r '.[] | select(.name == "noodle-linux-x86_64") | .browser_download_url')
+
+          MACOS_ARM_SHA=$(curl -sL "$MACOS_ARM_URL" | shasum -a 256 | cut -d' ' -f1)
+          LINUX_ARM_SHA=$(curl -sL "$LINUX_ARM_URL" | shasum -a 256 | cut -d' ' -f1)
+          LINUX_X64_SHA=$(curl -sL "$LINUX_X64_URL" | shasum -a 256 | cut -d' ' -f1)
+
+          VERSION="${{ steps.release.outputs.latest }}"
+          VERSION_NO_V="${VERSION#v}"
+
+          sed -i "s|url \".*/noodle-macos-arm64\"|url \"$MACOS_ARM_URL\"|" Formula/noodle.rb
+          sed -i "s|url \".*/noodle-linux-arm64\"|url \"$LINUX_ARM_URL\"|" Formula/noodle.rb
+          sed -i "s|url \".*/noodle-linux-x86_64\"|url \"$LINUX_X64_URL\"|" Formula/noodle.rb
+
+          sed -i "s|sha256 \".*\" # macos-arm|sha256 \"$MACOS_ARM_SHA\" # macos-arm|" Formula/noodle.rb
+          sed -i "s|sha256 \".*\" # linux-arm|sha256 \"$LINUX_ARM_SHA\" # linux-arm|" Formula/noodle.rb
+          sed -i "s|sha256 \".*\" # linux-x64|sha256 \"$LINUX_X64_SHA\" # linux-x64|" Formula/noodle.rb
+
+          sed -i "s|version \".*\"|version \"$VERSION_NO_V\"|" Formula/noodle.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/noodle.rb
+          git commit -m "chore: update to $VERSION" || true
+          git push
