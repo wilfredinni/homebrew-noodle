@@ -2,6 +2,8 @@ name: Update Formula
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [new-release]
 
 permissions:
   contents: write
@@ -22,7 +24,7 @@ jobs:
           echo "latest=$TAG" >> $GITHUB_OUTPUT
           echo "current=v$CURRENT" >> $GITHUB_OUTPUT
           echo "needs_update=$( [ "$TAG" != "v$CURRENT" ] && echo "true" || echo "false" )" >> $GITHUB_OUTPUT
-          echo "force=$( [ "${{ github.event_name }}" = "workflow_dispatch" ] && echo "true" || echo "false" )" >> $GITHUB_OUTPUT
+          echo "force=$( [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "repository_dispatch" ] && echo "true" || echo "false" )" >> $GITHUB_OUTPUT
           echo "assets_url=$(echo "$LATEST" | jq -r .assets_url)" >> $GITHUB_OUTPUT
 
       - name: Update formula
