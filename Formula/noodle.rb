@@ -1,25 +1,25 @@
 class Noodle < Formula
   desc "Terminal REST client"
   homepage "https://github.com/wilfredinni/noodle"
-  version "0.2.1"
+  version "0.3.0"
   license "Apache-2.0"
 
   on_macos do
     on_arm do
-      url "https://github.com/wilfredinni/noodle/releases/download/v0.2.1/noodle-macos-arm64"
-      sha256 "3d8546aba2383586c2d11bb511a64c99994f2d3dd7d7fec67a6bad0b3205f115" # macos-arm64
+      url "https://github.com/wilfredinni/noodle/releases/download/v0.3.0/noodle-macos-arm64"
+      sha256 "7e03e6847050074193d2109b30b43bf19442bf64c78f163ed492766ef4beb7be" # macos-arm64
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/wilfredinni/noodle/releases/download/v0.2.1/noodle-linux-arm64"
-      sha256 "3b7aa444b0713c5bf005d8c9f5d0ea303d9f7607aaebfb9f50d715cf706a8219" # linux-arm64
+      url "https://github.com/wilfredinni/noodle/releases/download/v0.3.0/noodle-linux-arm64"
+      sha256 "83fc2341e5d9c258b2838b970048a3c5e6543001cd879d9c0c3ad13d16070638" # linux-arm64
     end
 
     on_intel do
-      url "https://github.com/wilfredinni/noodle/releases/download/v0.2.1/noodle-linux-x86_64"
-      sha256 "635f7f87532d143b329fabcabeededb280b95e9aee823a7c9792fc6316fd9025" # linux-x86_64
+      url "https://github.com/wilfredinni/noodle/releases/download/v0.3.0/noodle-linux-x86_64"
+      sha256 "55daaf4e782a33e957fbe94d9d473b519bd7a9f223ad7dd6410a7518ba8935ec" # linux-x86_64
     end
   end
 
